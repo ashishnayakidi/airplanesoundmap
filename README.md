@@ -48,7 +48,7 @@ A comprehensive web application that tracks aircraft in real-time and visualizes
 
 ## 🚀 Live Demo
 
-**[Try AirplaneSoundMap Live](https://airplanesoundmap.netlify.app)**
+**[Try AirplaneSoundMap Live](https://airplanenoisemanagement.netlify.app/)**
 
 ## 🛠️ Technology Stack
 
