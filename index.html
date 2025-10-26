@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirplaneSoundMap - Advanced Aircraft Noise Analysis</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Real-time airplane sound intensity mapping with advanced analytics">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-plane"></i> AirplaneSoundMap</h1>
+            <p>Advanced real-time aircraft noise analysis and community reporting</p>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <i class="fas fa-plane"></i>
+                    <span id="header-aircraft-count">0</span>
+                    <label>Aircraft</label>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-volume-up"></i>
+                    <span id="header-noise-level">--</span>
+                    <label>dB</label>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <span id="header-users-online">1</span>
+                    <label>Users</label>
+                </div>
+            </div>
+        </header>
+        
+        <div class="top-controls">
+            <div class="search-panel">
+                <div class="search-box">
+                    <input type="text" id="address-search" placeholder="Search address or location..." />
+                    <button id="search-btn" class="btn btn-search"><i class="fas fa-search"></i></button>
+                    <button id="my-location-btn" class="btn btn-location"><i class="fas fa-map-marker-alt"></i></button>
+                </div>
+                <div class="location-info" id="current-location-info">
+                    <span id="location-text">Click "My Location" to get your current position</span>
+                </div>
+            </div>
+            
+            <div class="map-controls">
+                <button id="layer-toggle" class="btn btn-control"><i class="fas fa-satellite-dish"></i> Satellite</button>
+                <button id="fullscreen-btn" class="btn btn-control"><i class="fas fa-expand"></i> Fullscreen</button>
+                <button id="weather-toggle" class="btn btn-control"><i class="fas fa-cloud-sun"></i> Weather</button>
+                <button id="export-btn" class="btn btn-control"><i class="fas fa-download"></i> Export</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="legend">
+                <h3><i class="fas fa-palette"></i> Sound Level Legend</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #2E8B57;"></div>
+                    <span>Quiet (0-30 dB)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FFD700;"></div>
+                    <span>Moderate (30-50 dB)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FF8C00;"></div>
+                    <span>Loud (50-70 dB)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #FF4500;"></div>
+                    <span>Very Loud (70-90 dB)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #8B0000;"></div>
+                    <span>Extremely Loud (90+ dB)</span>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h3><i class="fas fa-chart-line"></i> Live Data Status</h3>
+                <div id="status-info">
+                    <div class="status-indicator">
+                        <span id="status-dot" class="status-dot offline"></span>
+                        <span id="status-text">Connecting...</span>
+                    </div>
+                    <div id="aircraft-count">
+                        <strong>Aircraft in Area:</strong> <span id="aircraft-number">0</span>
+                    </div>
+                    <div id="last-update">
+                        <strong>Last Update:</strong> <span id="update-time">Never</span>
+                    </div>
+                </div>
+                
+                <div class="controls-panel">
+                    <button id="toggle-auto-refresh" class="btn btn-primary"><i class="fas fa-sync"></i> Auto Refresh: ON</button>
+                    <button id="refresh-now" class="btn btn-secondary"><i class="fas fa-refresh"></i> Refresh Now</button>
+                    <button id="toggle-aircraft" class="btn btn-secondary"><i class="fas fa-plane"></i> Show Aircraft</button>
+                </div>
+                
+                <div class="sound-analysis">
+                    <h4><i class="fas fa-chart-bar"></i> Sound Analysis</h4>
+                    <div id="sound-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Peak Level:</span>
+                            <span id="peak-level" class="stat-value">-- dB</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Average Level:</span>
+                            <span id="avg-level" class="stat-value">-- dB</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Noise Trend:</span>
+                            <span id="noise-trend" class="stat-value">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Weather Impact:</span>
+                            <span id="weather-impact" class="stat-value">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="community-panel">
+                <h3><i class="fas fa-users"></i> Community Reports</h3>
+                <div class="report-form">
+                    <input type="text" id="user-report-location" placeholder="Your location..." />
+                    <input type="range" id="user-report-level" min="0" max="100" value="50" />
+                    <span id="user-report-value">50 dB</span>
+                    <button id="submit-report" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Report</button>
+                </div>
+                <div class="recent-reports" id="recent-reports">
+                    <p>No community reports yet. Be the first!</p>
+                </div>
+            </div>
+            
+            <div class="settings-panel">
+                <h3><i class="fas fa-cog"></i> Settings & Preferences</h3>
+                <div class="setting-item">
+                    <label for="noise-threshold">Noise Alert Threshold (dB):</label>
+                    <input type="range" id="noise-threshold" min="30" max="90" value="70" />
+                    <span id="threshold-value">70</span>
+                </div>
+                <div class="setting-item">
+                    <label for="update-interval">Update Interval (seconds):</label>
+                    <select id="update-interval">
+                        <option value="15">15 seconds</option>
+                        <option value="30" selected>30 seconds</option>
+                        <option value="60">1 minute</option>
+                        <option value="120">2 minutes</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="notifications" />
+                        Enable noise notifications
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="sound-history" />
+                        Track sound history
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="weather-effects" />
+                        Include weather effects
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="community-reports" />
+                        Show community reports
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="footer">
+            <div class="footer-content">
+                <p><i class="fas fa-sync"></i> Real-time data updates | Press 'H' for help | Data source: OpenSky Network</p>
+                <div class="footer-links">
+                    <button id="help-btn" class="btn-link"><i class="fas fa-question-circle"></i> Help</button>
+                    <button id="about-btn" class="btn-link"><i class="fas fa-info-circle"></i> About</button>
+                    <button id="settings-btn" class="btn-link"><i class="fas fa-cog"></i> Settings</button>
+                    <button id="share-btn" class="btn-link"><i class="fas fa-share"></i> Share</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="notification-toast" class="notification-toast">
+        <div class="notification-content">
+            <span id="notification-message"></span>
+            <button id="notification-close"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-share"></i> Share AirplaneSoundMap</h3>
+                <button id="close-share-modal" class="btn-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="share-options">
+                    <button id="copy-link" class="btn btn-primary"><i class="fas fa-copy"></i> Copy Link</button>
+                    <button id="share-twitter" class="btn btn-social twitter"><i class="fab fa-twitter"></i> Twitter</button>
+                    <button id="share-facebook" class="btn btn-social facebook"><i class="fab fa-facebook"></i> Facebook</button>
+                    <button id="share-linkedin" class="btn btn-social linkedin"><i class="fab fa-linkedin"></i> LinkedIn</button>
+                </div>
+                <div class="share-url">
+                    <input type="text" id="share-url-input" readonly value="https://airplanesoundmap.com" />
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@1.13.0/dist/Control.Geocoder.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
